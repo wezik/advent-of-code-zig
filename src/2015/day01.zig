@@ -6,13 +6,28 @@ pub fn init() Day {
 }
 
 fn part1(allocator: *std.mem.Allocator, data: []const u8) anyerror![]const u8 {
-    _ = allocator;
-    _ = data;
-    return "part 1 not implemented";
+    var floor: i32 = 0;
+    for (data) |c| {
+        switch (c) {
+            '(' => floor += 1,
+            ')' => floor -= 1,
+            else => continue,
+        }
+    }
+    return try std.fmt.allocPrint(allocator.*, "{d}", .{floor});
 }
 
 fn part2(allocator: *std.mem.Allocator, data: []const u8) anyerror![]const u8 {
-    _ = allocator;
-    _ = data;
-    return "part 2 not implemented";
+    var i: usize = 0;
+    var floor: i32 = 0;
+    for (data) |c| {
+        i += 1;
+        switch (c) {
+            '(' => floor += 1,
+            ')' => floor -= 1,
+            else => continue,
+        }
+        if (floor <= -1) return try std.fmt.allocPrint(allocator.*, "{d}", .{i});
+    }
+    return "no solution";
 }
