@@ -58,8 +58,8 @@ fn readInput(allocator: *std.mem.Allocator, day: Day, session_cookie: []const u8
                 const body = try fetchInput(allocator, url, session_cookie);
                 _ = try file_writer.writeAll(body);
                 defer allocator.free(body);
-
-                break :blk file_result;
+                file_result.close();
+                break :blk try dir.openFile(file_name, .{ .mode = .read_only });
             },
             else => return err,
         };
