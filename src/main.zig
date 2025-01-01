@@ -2,6 +2,7 @@ const std = @import("std");
 const writer = std.io.getStdOut().writer();
 const Day = @import("domain.zig").Day;
 const Day1 = @import("2015/day01.zig").init();
+const Day2 = @import("2015/day02.zig").init();
 
 pub fn main() !void {
     var args = std.process.args();
@@ -12,6 +13,7 @@ pub fn main() !void {
     defer args.deinit();
     switch (day_int) {
         1 => try runDay(Day1, session_cookie),
+        2 => try runDay(Day2, session_cookie),
         else => return error.DayNotImplemented,
     }
 }
