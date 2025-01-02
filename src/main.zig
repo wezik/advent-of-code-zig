@@ -81,6 +81,7 @@ fn fetchInput(allocator: *std.mem.Allocator, url: []const u8, session_cookie: []
     defer allocator.free(server_header_buffer);
 
     const session_cookie_value = try std.fmt.allocPrint(allocator.*, "session={s}", .{session_cookie});
+    defer allocator.free(session_cookie_value);
     const cookie_header = std.http.Header{ .name = "Cookie", .value = session_cookie_value };
     var req = try client.open(.GET, uri, .{
         .extra_headers = &.{cookie_header},
