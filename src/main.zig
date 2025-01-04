@@ -4,6 +4,7 @@ const Day = @import("domain.zig").Day;
 const Day1 = @import("2015/day01.zig").init();
 const Day2 = @import("2015/day02.zig").init();
 const Day3 = @import("2015/day03.zig").init();
+const Day4 = @import("2015/day04.zig").init();
 
 pub fn main() !void {
     var args = std.process.args();
@@ -16,6 +17,7 @@ pub fn main() !void {
         1 => try runDay(Day1, session_cookie),
         2 => try runDay(Day2, session_cookie),
         3 => try runDay(Day3, session_cookie),
+        4 => try runDay(Day4, session_cookie),
         else => return error.DayNotImplemented,
     }
 }
