@@ -13,23 +13,18 @@ fn part1(allocator: *std.mem.Allocator, data: []const u8) anyerror![]const u8 {
 
     var i: usize = starting_offset;
 
-    outer: while (true) : (i += 1) {
+    var buf: [hash.Md5.digest_length]u8 = undefined;
+
+    while (true) : (i += 1) {
         const str_to_hash = try std.fmt.allocPrint(allocator.*, "{s}{d}", .{ input, i });
         defer allocator.free(str_to_hash);
 
-        // idk yet how to define such buffer using allocators with this hash function :(
-        // this causes memory leak
-        var buf: [hash.Md5.digest_length]u8 = undefined;
         hash.Md5.hash(str_to_hash, &buf, .{});
+        const hex = std.fmt.bytesToHex(&buf, std.fmt.Case.upper);
 
-        for (0..3) |j| {
-            const hex = try std.fmt.allocPrint(allocator.*, "{X}", .{buf[j]});
-            defer allocator.free(hex);
-            if (!std.mem.eql(u8, hex, "0") and !(hex.len < 2 and j == 2)) {
-                continue :outer;
-            }
+        if (std.mem.eql(u8, hex[0..5], "0" ** 5)) {
+            return try std.fmt.allocPrint(allocator.*, "{d}", .{i});
         }
-        return try std.fmt.allocPrint(allocator.*, "{d}", .{i});
     }
     unreachable;
 }
@@ -39,23 +34,18 @@ fn part2(allocator: *std.mem.Allocator, data: []const u8) anyerror![]const u8 {
 
     var i: usize = 0;
 
-    outer: while (true) : (i += 1) {
+    var buf: [hash.Md5.digest_length]u8 = undefined;
+
+    while (true) : (i += 1) {
         const str_to_hash = try std.fmt.allocPrint(allocator.*, "{s}{d}", .{ input, i });
         defer allocator.free(str_to_hash);
 
-        // idk yet how to define such buffer using allocators with this hash function :(
-        // this causes memory leak
-        var buf: [hash.Md5.digest_length]u8 = undefined;
         hash.Md5.hash(str_to_hash, &buf, .{});
+        const hex = std.fmt.bytesToHex(&buf, std.fmt.Case.upper);
 
-        for (0..3) |j| {
-            const hex = try std.fmt.allocPrint(allocator.*, "{X}", .{buf[j]});
-            defer allocator.free(hex);
-            if (!std.mem.eql(u8, hex, "0")) {
-                continue :outer;
-            }
+        if (std.mem.eql(u8, hex[0..6], "0" ** 6)) {
+            return try std.fmt.allocPrint(allocator.*, "{d}", .{i});
         }
-        return try std.fmt.allocPrint(allocator.*, "{d}", .{i});
     }
     unreachable;
 }
@@ -66,4 +56,5 @@ test "part1 abcdef" {
     starting_offset = 600000;
     const result = try part1(&allocator, given);
     _ = try std.testing.expectEqualStrings("609043", result);
+    allocator.free(result);
 }
