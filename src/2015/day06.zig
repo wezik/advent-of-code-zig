@@ -6,8 +6,8 @@ pub fn init() Day {
 }
 
 const Seq = struct {
-    start: Vec2 = Vec2{ .x = 0, .y = 0 },
-    end: Vec2 = Vec2{ .x = 0, .y = 0 },
+    start: Vec2 = .{ .x = 0, .y = 0 },
+    end: Vec2 = .{ .x = 0, .y = 0 },
     instruction: Instruction = .@"turn on",
 };
 
@@ -22,25 +22,19 @@ const Vec2 = struct {
     y: usize,
 };
 
-fn parseLine(allocator: *std.mem.Allocator, line: []const u8) !Seq {
+fn parseLine(line: []const u8) !Seq {
     var line_split = std.mem.split(u8, line, " through ");
+    const first_part = line_split.next() orelse return error.InvalidInput;
 
-    var first_split = std.mem.split(u8, line_split.next() orelse return error.InvalidInput, " ");
+    const last_space = std.mem.lastIndexOf(u8, first_part, " ") orelse return error.InvalidInput;
+    const instruction_str = first_part[0..last_space];
+    const start_coords = first_part[last_space + 1 ..];
 
-    var first_parts = std.ArrayList([]const u8).init(allocator.*);
-    defer first_parts.deinit();
-    while (first_split.next()) |part| {
-        _ = try first_parts.append(part);
-    }
-
-    var start_vec = std.mem.split(u8, first_parts.items[first_parts.items.len - 1], ",");
+    var start_vec = std.mem.split(u8, start_coords, ",");
     var end_vec = std.mem.split(u8, line_split.next() orelse return error.InvalidInput, ",");
 
     return Seq{
-        .instruction = std.meta.stringToEnum(
-            Instruction,
-            try std.mem.join(allocator.*, " ", first_parts.items[0 .. first_parts.items.len - 1]),
-        ) orelse return error.InvalidInput,
+        .instruction = std.meta.stringToEnum(Instruction, instruction_str) orelse return error.InvalidInput,
         .start = Vec2{
             .x = try std.fmt.parseInt(usize, start_vec.next() orelse return error.InvalidInput, 10),
             .y = try std.fmt.parseInt(usize, start_vec.next() orelse return error.InvalidInput, 10),
@@ -58,7 +52,7 @@ fn part1(allocator: *std.mem.Allocator, data: []const u8) anyerror![]const u8 {
     var lights: [1000][1000]bool = .{.{false} ** 1000} ** 1000;
     while (lines.next()) |line| {
         if (line.len == 0) continue;
-        const seq = try parseLine(allocator, line);
+        const seq = try parseLine(line);
 
         for (seq.start.y..seq.end.y + 1) |y| {
             for (seq.start.x..seq.end.x + 1) |x| {
@@ -81,15 +75,10 @@ fn part1(allocator: *std.mem.Allocator, data: []const u8) anyerror![]const u8 {
 fn part2(allocator: *std.mem.Allocator, data: []const u8) anyerror![]const u8 {
     var lines = std.mem.split(u8, data, "\n");
 
-    // _ = data;
-    // const foo = "turn off 0,0 through 999,999";
-    // var lines = std.mem.split(u8, foo, "\n");
-
     var lights: [1000][1000]u8 = .{.{0} ** 1000} ** 1000;
-
     while (lines.next()) |line| {
         if (line.len == 0) continue;
-        const seq = try parseLine(allocator, line);
+        const seq = try parseLine(line);
 
         for (seq.start.y..seq.end.y + 1) |y| {
             for (seq.start.x..seq.end.x + 1) |x| {
@@ -111,4 +100,22 @@ fn part2(allocator: *std.mem.Allocator, data: []const u8) anyerror![]const u8 {
     }
 
     return std.fmt.allocPrint(allocator.*, "{d}", .{total_brightness});
+}
+
+test "part1 has no memory leaks" {
+    var allocator = std.testing.allocator;
+    const given = "turn on 0,0 through 999,999\n" ++
+        "turn off 499,499 through 500,500\n" ++
+        "toggle 0,0 through 999,999";
+    const result = try part1(&allocator, given);
+    allocator.free(result);
+}
+
+test "part2 has no memory leaks" {
+    var allocator = std.testing.allocator;
+    const given = "turn on 0,0 through 999,999\n" ++
+        "turn off 499,499 through 500,500\n" ++
+        "toggle 0,0 through 999,999";
+    const result = try part2(&allocator, given);
+    allocator.free(result);
 }
